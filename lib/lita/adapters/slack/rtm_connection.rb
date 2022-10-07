@@ -17,7 +17,7 @@ module Lita
 
         class << self
           def build(robot, config)
-            new(robot, config, API.new(config).rtm_start)
+            new(robot, config, API.new(config).rtm_connect)
           end
         end
 

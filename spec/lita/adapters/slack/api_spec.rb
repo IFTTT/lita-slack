@@ -387,7 +387,7 @@ describe Lita::Adapters::Slack::API do
 
     context "with all the valid options" do
       let(:attachment) do
-        Lita::Adapters::Slack::Attachment.new(attachment_text, common_hash_data)
+        Lita::Adapters::Slack::Attachment.new(attachment_text, **common_hash_data)
       end
       let(:attachment_hash) do
         common_hash_data.merge(fallback: attachment_text, text: attachment_text)
@@ -637,49 +637,57 @@ describe Lita::Adapters::Slack::API do
     end
   end
 
-  describe "#rtm_start" do
+  describe "#rtm_connect" do
     let(:http_status) { 200 }
     let(:stubs) do
       Faraday::Adapter::Test::Stubs.new do |stub|
-        stub.post('https://slack.com/api/rtm.start', token: token) do
-          [http_status, {}, http_response]
+        http_responses.each do |method, data|
+          stub.post("https://slack.com/api/#{method}", token: token) do
+            [http_status, {}, data]
+          end
         end
       end
     end
 
     describe "with a successful response" do
-      let(:http_response) do
-        MultiJson.dump({
-          ok: true,
-          url: 'wss://example.com/',
-          users: [{ id: 'U023BECGF' }],
-          ims: [{ id: 'D024BFF1M' }],
-          self: { id: 'U12345678' },
-          channels: [{ id: 'C1234567890' }],
-          groups: [{ id: 'G0987654321' }],
-        })
+      let(:http_responses) do
+        {
+          "rtm.connect": MultiJson.dump({
+            ok: true,
+            url: 'wss://example.com/',
+            self: { id: 'U12345678' }
+          }),
+          "users.list": MultiJson.dump({
+            ok: true,
+            members: [{ id: 'U023BECGF' }]
+          }),
+          "users.conversations": MultiJson.dump({
+            ok: true,
+            channels: [{ id: 'C1234567890' }]
+          })
+        }
       end
 
       it "has data on the bot user" do
-        response = subject.rtm_start
+        response = subject.rtm_connect
 
         expect(response.self.id).to eq('U12345678')
       end
 
       it "has an array of IMs" do
-        response = subject.rtm_start
+        response = subject.rtm_connect
 
-        expect(response.ims[0].id).to eq('D024BFF1M')
+        expect(response.ims[0].id).to eq('U023BECGF')
       end
 
       it "has an array of users" do
-        response = subject.rtm_start
+        response = subject.rtm_connect
 
         expect(response.users[0].id).to eq('U023BECGF')
       end
 
       it "has a WebSocket URL" do
-        response = subject.rtm_start
+        response = subject.rtm_connect
 
         expect(response.websocket_url).to eq('wss://example.com/')
       end

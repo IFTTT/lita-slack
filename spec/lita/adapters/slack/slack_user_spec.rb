@@ -6,7 +6,9 @@ describe Lita::Adapters::Slack::SlackUser do
       "id" => "U023BECGF",
       "name" => "bobby",
       "real_name" => "Bobby Tables",
-      "email" => "btables@example.com"
+      "profile" => {
+        "email" => "btables@example.com"
+      }
     }
   end
   let(:user_data_2) do
