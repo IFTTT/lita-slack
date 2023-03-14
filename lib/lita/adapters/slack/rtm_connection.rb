@@ -36,7 +36,7 @@ module Lita
           im_mapping.im_for(user_id)
         end
 
-        def run(queue = nil, options = {})
+        def run(queue = nil, options = {tls: {verify_peer: config.rtm_verify_peer}})
           EventLoop.run do
             log.debug("Connecting to the Slack Real Time Messaging API.")
             @websocket = Faye::WebSocket::Client.new(

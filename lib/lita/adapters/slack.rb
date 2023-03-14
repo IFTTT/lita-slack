@@ -13,7 +13,7 @@ module Lita
       config :link_names, type: [true, false]
       config :unfurl_links, type: [true, false]
       config :unfurl_media, type: [true, false]
-      config :rtm_enabled, type: [true, false], default: true
+      config :rtm_verify_peer, type: [true, false], default: true
 
       # Provides an object for Slack-specific features.
       def chat_service
@@ -26,7 +26,6 @@ module Lita
 
       # Starts the connection.
       def run
-        return unless config.rtm_enabled
         return if rtm_connection
 
         @rtm_connection = RTMConnection.build(robot, config)
